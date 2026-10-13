@@ -6,6 +6,10 @@ same app) through the same cloud path the official Android app uses: a REST logi
 AWS IoT Core. There is no LAN protocol; the cooker only speaks to the cloud. See
 [PROTOCOL.md](PROTOCOL.md) for the full reverse-engineered protocol.
 
+The included MQTT bridge exposes each cooker in Home Assistant, with alerts for long cooks:
+
+<img src="docs/ha-sensors.png" alt="Home Assistant sensors of a monitored G322PX" width="403"> <img src="docs/ha-controls.png" alt="Home Assistant controls of a monitored G322PX" width="403">
+
 ## Install
 
 ```bash
