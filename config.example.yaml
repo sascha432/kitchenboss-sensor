@@ -1,0 +1,71 @@
+# kitchenboss-bridge configuration
+# Run in the foreground:  kitchenboss-bridge --config config.yaml
+# Validate only:          kitchenboss-bridge --config config.yaml --check
+
+account:
+  # KitchenBoss app account
+  email: you@example.com
+  password: XXX                     # or env KITCHENBOSS_PASSWORD
+  # token + device cache (contains the device certificates; keep private)
+  # null = $KITCHENBOSS_CONFIG or ~/.kitchenboss/config.json (shared with the CLI)
+  cache_file: null
+  # re-read the device list (names, firmware, new devices) every N seconds; 0 = only at start
+  device_refresh_interval: 3600
+
+# Cookers to bridge: names, ids or MAC addresses. Empty = every device on the account.
+devices: []
+#  - Sous Vide
+#  - 1234567890
+
+cloud:
+  client_id: null                   # AWS IoT client id; default random "android_client_snx-py-xxxx"
+  mimic_app: false                  # true = app's client id, kicks the phone app off while running
+  timeout: 10                       # seconds for connect / command replies
+  reconnect_max_delay: 300          # max seconds between failed cloud connects
+
+mqtt:
+  host: localhost
+  port: 1883
+  username: null                    # or env KITCHENBOSS_MQTT_USERNAME
+  password: null                    # or env KITCHENBOSS_MQTT_PASSWORD
+  client_id: kitchenboss-bridge
+  keepalive: 60
+  qos: 1
+  retain: true                      # retain state topics
+  tls: false
+  tls_ca_certs: null                # CA file; null = system CAs
+  tls_certfile: null                # client certificate (optional)
+  tls_keyfile: null
+  tls_insecure: false               # skip certificate/hostname verification
+  update_interval: 60               # seconds between status polls (the cooker also pushes reports)
+  offline_after: null               # seconds without data until "unavailable"; default 3x update_interval, min 180
+  topic_prefix: home                # topics: <topic_prefix>/<base_topic>/<device id>/...
+  base_topic: kitchenboss
+  auto_discovery: true
+  auto_discovery_prefix: homeassistant
+
+cooking:
+  default_temperature_c: 56.0       # setpoint for "Start" until changed in Home Assistant
+  default_temperature_f: 133.0      # used instead when the cooker is set to °F
+  default_time: 90                  # minutes
+  apply_while_running: true         # changing temperature/duration during a cook updates the cooker
+
+monitor:
+  pause_warning: 15                 # minutes paused before an alert (a paused cook is never resumed)
+  restart_hours: 24                 # restart=true: timer is set back to this many hours (max 99)
+  hysteresis: 0.5                   # °C above the limit before a temperature alarm clears
+  # Alerts (logged and published to MQTT / Home Assistant): paused > pause_warning, water below "temperature" (armed once reached, so no alarm
+  # while preheating), cooker offline, device error, timer extension failing.
+  devices:
+    - name: G322PX-1                # device name, id or MAC
+      restart: true                 # while cooking keep the timer at restart_hours
+      temperature: 60.0             # °C; alarm once the water drops below; omit to disable
+                                    # (adjustable in Home Assistant as "Alarm temperature")
+
+logging:
+  # DEBUG | INFO | WARNING | ERROR
+  level: DEBUG
+  format: "%(asctime)s %(levelname)s %(name)s: %(message)s"
+  file: null                        # optional log file (rotated); needed with --daemon
+  max_bytes: 5000000
+  backup_count: 3

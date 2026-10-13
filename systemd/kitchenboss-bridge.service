@@ -1,0 +1,42 @@
+# Template - install.sh replaces @PREFIX@, @USER@ and @CONF_DIR@.
+[Unit]
+Description=KitchenBoss sous-vide MQTT bridge (Home Assistant discovery)
+Wants=network-online.target
+After=network-online.target
+# local broker on the same host:
+#After=network-online.target mosquitto.service
+
+[Service]
+Type=simple
+User=@USER@
+Group=@USER@
+ExecStart=@PREFIX@/venv/bin/kitchenboss-bridge --config @CONF_DIR@/config.yaml
+# optional KEY=value file for KITCHENBOSS_PASSWORD / KITCHENBOSS_MQTT_PASSWORD
+EnvironmentFile=-@CONF_DIR@/environment
+Environment=PYTHONUNBUFFERED=1
+# token + device certificate cache
+Environment=KITCHENBOSS_CONFIG=/var/lib/kitchenboss/cloud-cache.json
+WorkingDirectory=/var/lib/kitchenboss
+StateDirectory=kitchenboss
+StateDirectoryMode=0750
+LogsDirectory=kitchenboss
+Restart=on-failure
+RestartSec=15
+# 2 = config error, 3 = login rejected: restarting would not help
+RestartPreventExitStatus=2 3
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
