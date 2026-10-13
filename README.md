@@ -131,7 +131,8 @@ Cookers listed under `monitor.devices` are watched by the bridge:
 
 - `restart: true`: while cooking, the timer is set back to `restart_hours` (default 24 h) whenever
   less than 1 h below that remains, so a cook never ends by itself. The cooker restarts its countdown
-  from the new time; it rejects 99:59:59 (reply code 100).
+  from the new time only if it differs from the current one (as on the device itself), so the bridge
+  alternates between `restart_hours` and one second more; it rejects 99:59:59 (reply code 100).
 - Paused for more than `pause_warning` minutes: alert. A paused cook is never resumed automatically.
 - Otherwise: alert once the water drops below `temperature` (°C). The alarm is armed only after the
   water reached the limit (no alarm while preheating) and clears at limit + `hysteresis`.

@@ -3,7 +3,9 @@ Cook monitor for the MQTT bridge.
 
 - restart: keeps a cook running indefinitely by setting the timer back to monitor.restart_hours
   (default 24 h) whenever less than restart_hours - 1 h remain. The cooker restarts its countdown
-  from the new set_time (verified on a G322PX; 99:59:59 is rejected with reply code 100).
+  from the new set_time (verified on a G322PX; 99:59:59 is rejected with reply code 100), but only
+  when set_time changes; an unchanged value is acknowledged and ignored, so the bridge alternates
+  between restart_hours and restart_hours + 1 s.
 - paused longer than monitor.pause_warning minutes -> alarm (never resumed automatically; the
   user may be working on the cooker).
 - otherwise: alarm once the water temperature drops below the device's temperature limit. The

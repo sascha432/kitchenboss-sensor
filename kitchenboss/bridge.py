@@ -436,18 +436,24 @@ class DeviceBridge:
     def extend_timer(self) -> None:
         """monitor restart=true: set the timer back to monitor.restart_hours while cooking.
 
-        The cooker restarts the countdown from the new set_time (verified on a G322PX).
+        The cooker restarts the countdown from the new set_time (verified on a G322PX), but only if
+        set_time actually changes: resending the current value is accepted (code 200) and ignored,
+        just like on the device itself. So one second is added whenever the timer already shows
+        restart_hours, alternating between e.g. 96:00:00 and 96:00:01.
         """
         mon = self.monitor
         st = self.status
         if mon is None or st is None or st.work_state != WorkState.COOKING or st.rem_time >= mon.extend_below:
             return
+        set_time = mon.restart_time
+        if st.set_time == set_time:
+            set_time += 1
         c = self.require_cloud()
         log.info("[%s] remaining %s, setting timer back to %s", self.name,
-                 P.fmt_duration(st.rem_time), P.fmt_duration(mon.restart_time))
+                 P.fmt_duration(st.rem_time), P.fmt_duration(set_time))
         c.set_cook(
             work_state=WorkState.COOKING, set_temp_tenths=st.set_temp, temp_unit=st.temp_unit,
-            set_time_s=mon.restart_time, recipe_id=st.recipe_id or P.RECIPE_ID_CUSTOM,
+            set_time_s=set_time, recipe_id=st.recipe_id or P.RECIPE_ID_CUSTOM,
             timeout=self.bridge.cfg["cloud"]["timeout"],
         )
         self.poll()
